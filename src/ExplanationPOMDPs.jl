@@ -3,14 +3,14 @@ module ExplanationPOMDPs
 using POMDPs, POMDPModelTools, Printf, BeliefUpdaters, POMDPPolicies, POMDPSimulators, Distributions
 
 mutable struct ExplainPOMDP <: POMDP{Int64,Int64,Bool}
-    r_listen::Float64
-    r_findtiger::Float64
-    r_escapetiger::Float64
-    p_listen_correctly::Float64
+    r_draw::Float64
+    r_guess_right::Float64
+    r_guess_wrong::Float64
     n_balls::Int64
     discount_factor::Float64
 end
-ExplainPOMDP() = ExplainPOMDP(-1.0, -100.0, 10.0, 0.85, 2, 0.95)
+ExplainPOMDP(n::Int64) = ExplainPOMDP(-0.1, 1.0, -1.0, n, 0.95)
+
 export ExplainPOMDP
 
 POMDPs.states(pomdp::ExplainPOMDP) = collect(1:pomdp.n_balls)
@@ -18,7 +18,7 @@ POMDPs.observations(::ExplainPOMDP) = (true, false)
 
 POMDPs.stateindex(::ExplainPOMDP, s::Int) = Int64(s)
 POMDPs.actionindex(::ExplainPOMDP, a::Int) = a + 1
-POMDPs.obsindex(::ExplainPOMDP, o::Int) = Int64(o) + 1
+POMDPs.obsindex(::ExplainPOMDP, o::Bool) = Int64(o) + 1
 
 initial_belief(pomdp::ExplainPOMDP) = DiscreteBelief(pomdp.n_balls)
 export initial_belief
@@ -56,10 +56,12 @@ end
 
 
 function POMDPs.reward(pomdp::ExplainPOMDP, s::Int64, a::Int64)
-    if a == s
-        return 1.0
+    if a == 0
+        return pomdp.r_draw
+    elseif a == s
+        return pomdp.r_guess_right
     else
-        return 0.0
+        return pomdp.r_guess_wrong
     end
 end
 

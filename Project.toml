@@ -4,6 +4,8 @@ authors = ["Jack Beasley <jack.beasley@gmail.com>"]
 version = "0.1.0"
 
 [deps]
+BasicPOMCP = "d721219e-3fc6-5570-a8ef-e5402f47c49e"
+BeliefGridValueIteration = "d6851e30-d4b8-11e9-06de-0b345e2a813d"
 BeliefUpdaters = "8bb6e9a1-7d73-552c-a44a-e5dc5634aac4"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 FIB = "13b007ba-0ca8-5af2-9adf-bc6a6301e25a"
@@ -13,3 +15,4 @@ POMDPSimulators = "e0d0a172-29c6-5d4e-96d0-f262df5d01fd"
 POMDPs = "a93abf59-7444-517b-a68a-c42f96afdd7d"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 QMDP = "3aa3ecc9-5a5d-57c8-8188-3e47bd8068d2"
+SARSOP = "cef570c6-3a94-5604-96b7-1a5e143043f2"
