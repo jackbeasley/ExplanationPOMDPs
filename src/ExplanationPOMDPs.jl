@@ -9,7 +9,7 @@ mutable struct ExplainPOMDP <: POMDP{Int64,Int64,Bool}
     n_balls::Int64
     discount_factor::Float64
 end
-ExplainPOMDP(n::Int64) = ExplainPOMDP(-0.1, 1.0, -1.0, n, 0.95)
+ExplainPOMDP(n::Int64) = ExplainPOMDP(-1.0, 5.0, -5.0, n, 0.95)
 
 export ExplainPOMDP
 
@@ -69,7 +69,7 @@ POMDPs.reward(pomdp::ExplainPOMDP, s::Int64, a::Int64, sp::Int64) = reward(pomdp
 
 POMDPs.initialstate(pomdp::ExplainPOMDP) = SparseCat(states(pomdp), fill(1.0 / length(states(pomdp)), length(states(pomdp))))
 
-POMDPs.actions(::ExplainPOMDP) = [0,1,2]
+POMDPs.actions(pomdp::ExplainPOMDP) = collect(0:pomdp.n_balls)
 
 function upperbound(pomdp::ExplainPOMDP, s::Int64)
     return pomdp.r_escapetiger
