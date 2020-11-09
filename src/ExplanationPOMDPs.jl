@@ -2,24 +2,26 @@ module ExplanationPOMDPs
 
 using POMDPs, POMDPModelTools, Printf, BeliefUpdaters, POMDPPolicies, POMDPSimulators, Distributions
 
-mutable struct ExplainPOMDP <: POMDP{Int,Int64,Bool}
+mutable struct ExplainPOMDP <: POMDP{Int64,Int64,Bool}
     r_listen::Float64
     r_findtiger::Float64
     r_escapetiger::Float64
     p_listen_correctly::Float64
+    n_violet_balls::Int64
+    n_balls::Int64
     discount_factor::Float64
 end
-ExplainPOMDP() = ExplainPOMDP(-1.0, -100.0, 10.0, 0.85, 0.95)
+ExplainPOMDP() = ExplainPOMDP(-1.0, -100.0, 10.0, 0.85, 1, 2, 0.95)
 export ExplainPOMDP
 
-POMDPs.states(::ExplainPOMDP) = (0, 1)
+POMDPs.states(pomdp::ExplainPOMDP) = collect(1:pomdp.n_balls)
 POMDPs.observations(::ExplainPOMDP) = (true, false)
 
-POMDPs.stateindex(::ExplainPOMDP, s::Int) = Int64(s) + 1
+POMDPs.stateindex(::ExplainPOMDP, s::Int) = Int64(s)
 POMDPs.actionindex(::ExplainPOMDP, a::Int) = a + 1
 POMDPs.obsindex(::ExplainPOMDP, o::Int) = Int64(o) + 1
 
-initial_belief(::ExplainPOMDP) = DiscreteBelief(2)
+initial_belief(pomdp::ExplainPOMDP) = DiscreteBelief(pomdp.n_balls)
 export initial_belief
 
 const DRAW = 0
@@ -33,25 +35,16 @@ const TIGER_RIGHT = 1
 function POMDPs.transition(pomdp::ExplainPOMDP, s::Int64, a::Int64)
     p = 1.0
     if a == 1 || a == 2
-        p = 0.5
-    elseif s == 1
-        p = 1.0
-    else
-        p = 0.0
+        # Reset with uniform distribution
+        return initialstate(pomdp)
     end
-    return SparseCat([0, 1], [p, 1.0 - p])
+    probs = zeros(Float64, length(states(pomdp)))
+    probs[s] = 1.0
+    return SparseCat(states(pomdp), probs)
 end
 
 function POMDPs.observation(pomdp::ExplainPOMDP, a::Int64, sp::Int64)
-
-    pc = pomdp.p_listen_correctly
-    p = 1.0
-    if a == 0
-        sp == 1 ? (p = pc) : (p = 1.0 - pc)
-    else
-        p = 0.5
-    end
-    return BoolDistribution(p)
+    return BoolDistribution(sp / pomdp.n_balls)
 end
 
 function POMDPs.observation(pomdp::ExplainPOMDP, s::Int64, a::Int64, sp::Int64)
@@ -77,8 +70,7 @@ end
 
 POMDPs.reward(pomdp::ExplainPOMDP, s::Int64, a::Int64, sp::Int64) = reward(pomdp, s, a)
 
-
-POMDPs.initialstate(pomdp::ExplainPOMDP) = SparseCat([0, 1], [0.5, 0.5])
+POMDPs.initialstate(pomdp::ExplainPOMDP) = SparseCat(states(pomdp), fill(1.0 / length(states(pomdp)), length(states(pomdp))))
 
 POMDPs.actions(::ExplainPOMDP) = [0,1,2]
 
@@ -93,15 +85,17 @@ POMDPs.initialobs(p::ExplainPOMDP, s::Int64) = observation(p, 0, s) # listen
 
 
 function test_simulation()
-    m = ExplainPOMDP()
+    m = ExplainPOMDP(-1.0, -100.0, 10.0, 0.85, 5, 10, 0.95)
     policy = FunctionPolicy(b -> DRAW)
     updater = DiscreteUpdater(m);
-    s0 = rand(initialstate(m))
     hr = HistoryRecorder(max_steps=10)
-    history = simulate(hr, m, policy, updater)
+    s = initialstate(m)
+    println(s)
+    println(pdf(s, 2))
+    history = simulate(hr, m, policy, updater, initialstate(m))
     for step in eachstep(history)
         @printf("belief : %s\n", pdf(step.b, 1))
-        @printf("action: %s, observation: %s\n", step.a, step.o)
+        @printf("action: %s, observation: %s, state: %s\n", step.a, step.o, step.s)
     end
 end
 
