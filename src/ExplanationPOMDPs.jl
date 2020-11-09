@@ -7,11 +7,10 @@ mutable struct ExplainPOMDP <: POMDP{Int64,Int64,Bool}
     r_findtiger::Float64
     r_escapetiger::Float64
     p_listen_correctly::Float64
-    n_violet_balls::Int64
     n_balls::Int64
     discount_factor::Float64
 end
-ExplainPOMDP() = ExplainPOMDP(-1.0, -100.0, 10.0, 0.85, 1, 2, 0.95)
+ExplainPOMDP() = ExplainPOMDP(-1.0, -100.0, 10.0, 0.85, 2, 0.95)
 export ExplainPOMDP
 
 POMDPs.states(pomdp::ExplainPOMDP) = collect(1:pomdp.n_balls)
@@ -57,15 +56,11 @@ end
 
 
 function POMDPs.reward(pomdp::ExplainPOMDP, s::Int64, a::Int64)
-    r = 0.0
-    a == 0 ? (r += pomdp.r_listen) : (nothing)
-    if a == 1
-        s == 0 ? (r += pomdp.r_findtiger) : (r += pomdp.r_escapetiger)
+    if a == s
+        return 1.0
+    else
+        return 0.0
     end
-    if a == 2
-        s == 1 ? (r += pomdp.r_escapetiger) : (r += pomdp.r_findtiger)
-    end
-    return r
 end
 
 POMDPs.reward(pomdp::ExplainPOMDP, s::Int64, a::Int64, sp::Int64) = reward(pomdp, s, a)
@@ -85,7 +80,7 @@ POMDPs.initialobs(p::ExplainPOMDP, s::Int64) = observation(p, 0, s) # listen
 
 
 function test_simulation()
-    m = ExplainPOMDP(-1.0, -100.0, 10.0, 0.85, 5, 10, 0.95)
+    m = ExplainPOMDP(-1.0, -100.0, 10.0, 0.85, 10, 0.95)
     policy = FunctionPolicy(b -> DRAW)
     updater = DiscreteUpdater(m);
     hr = HistoryRecorder(max_steps=10)
