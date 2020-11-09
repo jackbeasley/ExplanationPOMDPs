@@ -2,48 +2,91 @@ module ExplanationPOMDPs
 
 using POMDPs, POMDPModelTools, Printf, BeliefUpdaters, POMDPPolicies, POMDPSimulators, Distributions
 
-
-struct ExplainPOMDP <: POMDP{Int,Int,Bool}
-    green_balls::Int 
-    n_balls::Int 
+mutable struct ExplainPOMDP <: POMDP{Bool,Int64,Bool}
+    r_listen::Float64
+    r_findtiger::Float64
+    r_escapetiger::Float64
+    p_listen_correctly::Float64
+    discount_factor::Float64
 end
-
+ExplainPOMDP() = ExplainPOMDP(-1.0, -100.0, 10.0, 0.85, 0.95)
 export ExplainPOMDP
 
+POMDPs.states(::ExplainPOMDP) = (true, false)
+POMDPs.observations(::ExplainPOMDP) = (true, false)
 
-POMDPs.states(pomdp::ExplainPOMDP) = collect(0:pomdp.n_balls)
-POMDPs.stateindex(::ExplainPOMDP, n::Int) = n + 1
-
-POMDPs.actions(pomdp::ExplainPOMDP) = collect(-1:pomdp.n_balls)
+POMDPs.stateindex(::ExplainPOMDP, s::Bool) = Int64(s) + 1
 POMDPs.actionindex(::ExplainPOMDP, a::Int) = a + 1
+POMDPs.obsindex(::ExplainPOMDP, o::Bool) = Int64(o) + 1
 
-POMDPs.transition(::ExplainPOMDP, s::Int, a::Int) = Deterministic(s)
+initial_belief(::ExplainPOMDP) = DiscreteBelief(2)
+export initial_belief
 
-POMDPs.observations(::ExplainPOMDP) = [true, false]
-POMDPs.obsindex(::ExplainPOMDP, o::Bool) = o + 1
+const TIGER_LISTEN = 0
+const TIGER_OPEN_LEFT = 1
+const TIGER_OPEN_RIGHT = 2
 
-function POMDPs.observation(pomdp::ExplainPOMDP,  a::Int, s::Int)
-    if a == -1
-        # Return true with probability of green ball
-        return BoolDistribution(float(pomdp.green_balls) / pomdp.n_balls)
+const TIGER_LEFT = true
+const TIGER_RIGHT = false
+
+
+# Resets the problem after opening door; does nothing after listening
+function POMDPs.transition(pomdp::ExplainPOMDP, s::Bool, a::Int64)
+    p = 1.0
+    if a == 1 || a == 2
+        p = 0.5
+    elseif s
+        p = 1.0
+    else
+        p = 0.0
     end
-    return BoolDistribution(0.5)
+    return BoolDistribution(p)
 end
 
-function POMDPs.reward(pomdp::ExplainPOMDP, s::Int, a::Int)::Float64
-    if a == -1
-        return -1.0
+function POMDPs.observation(pomdp::ExplainPOMDP, a::Int64, sp::Bool)
+    pc = pomdp.p_listen_correctly
+    p = 1.0
+    if a == 0
+        sp ? (p = pc) : (p = 1.0 - pc)
+    else
+        p = 0.5
     end
-    if s == pomdp.green_balls
-        return 10
-    end
-    return -10
+    return BoolDistribution(p)
 end
 
-POMDPs.discount(::ExplainPOMDP) = 1.0
+function POMDPs.observation(pomdp::ExplainPOMDP, s::Bool, a::Int64, sp::Bool)
+    return observation(pomdp, a, sp)
+end
 
-POMDPs.initialstate(pomdp::ExplainPOMDP) = DiscreteUniform(0, pomdp.n_balls)
-POMDPs.initialobs(p::ExplainPOMDP, s::Int) = observation(p, -1, s)
+
+function POMDPs.reward(pomdp::ExplainPOMDP, s::Bool, a::Int64)
+    r = 0.0
+    a == 0 ? (r += pomdp.r_listen) : (nothing)
+    if a == 1
+        s ? (r += pomdp.r_findtiger) : (r += pomdp.r_escapetiger)
+    end
+    if a == 2
+        s ? (r += pomdp.r_escapetiger) : (r += pomdp.r_findtiger)
+    end
+    return r
+end
+
+POMDPs.reward(pomdp::ExplainPOMDP, s::Bool, a::Int64, sp::Bool) = reward(pomdp, s, a)
+
+
+POMDPs.initialstate(pomdp::ExplainPOMDP) = BoolDistribution(0.5)
+
+POMDPs.actions(::ExplainPOMDP) = [0,1,2]
+
+function upperbound(pomdp::ExplainPOMDP, s::Bool)
+    return pomdp.r_escapetiger
+end
+export upperbound
+
+POMDPs.discount(pomdp::ExplainPOMDP) = pomdp.discount_factor
+
+POMDPs.initialobs(p::ExplainPOMDP, s::Bool) = observation(p, 0, s) # listen 
+
 
 function test_simulation()
     m = ExplainPOMDP(15, 20)

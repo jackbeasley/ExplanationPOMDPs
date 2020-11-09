@@ -2,7 +2,7 @@ using ExplanationPOMDPs
 using POMDPs, POMDPModelTools, Printf, BeliefUpdaters, POMDPPolicies, POMDPSimulators, Distributions
 using QMDP
 
-m = ExplainPOMDP(15, 20)
+m = ExplainPOMDP()
 
 solver = QMDPSolver()
 
