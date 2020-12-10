@@ -1,4 +1,6 @@
-using Test, ExplanationPOMDPs.SingleObservationExplanation, POMDPs, BeliefUpdaters
+using Test
+using ExplanationPOMDPs.SingleObservationExplanation
+using POMDPs, BeliefUpdaters, POMDPPolicies, POMDPSimulators
 
 pomdp = SingleObservationPOMDP(4, 2, 0.0, 1.0, -1.0, 1.0)
 @testset "Single Observation States" begin
@@ -18,5 +20,17 @@ end
 
     up = DiscreteUpdater(pomdp)
     belief = initialize_belief(up, init)
+end
 
+@testset "Single Observation Simulation" begin
+
+    p = FunctionPolicy(s -> 2)
+
+    up = DiscreteUpdater(pomdp)
+
+    hr = HistoryRecorder(max_steps=10)
+    history = simulate(hr, pomdp, p, up, initialstate(pomdp))
+
+    # Initial state and state after observation
+    @test length(history) == 2
 end
