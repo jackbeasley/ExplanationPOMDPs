@@ -1,18 +1,22 @@
-using Test, ExplanationPOMDPs.SingleObservationExplanation, POMDPs
+using Test, ExplanationPOMDPs.SingleObservationExplanation, POMDPs, BeliefUpdaters
 
 pomdp = SingleObservationPOMDP(4, 2, 0.0, 1.0, -1.0, 1.0)
 @testset "Single Observation States" begin
     states = POMDPs.states(pomdp)
-    ball_counts = [ball_count(pomdp, s) for s in states]
-    @test ball_counts == [0, 1, 2, 3, 4, 0, 1, 2, 3, 4]
-
     # Ensure all stateindices map correctly
     @test states == [states[stateindex(pomdp, s)] for s in states]
 
     terminality = [isterminal(pomdp, s) for s in states]
-    @test [false, false, false, false, false, true, true, true, true, true] == terminality
+    @test [false, true, false, false, false, false, false] == terminality
 
-    dist = initialstate(pomdp)
-    prbs = [pdf(dist, s) for s in states]
-    @test prbs == [0.2, 0.2, 0.2, 0.2, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0]
+    @test uniform_state_probs(pomdp) == [0.0, 0.0, 0.2, 0.2, 0.2, 0.2, 0.2]
+end
+
+@testset "Initial Beliefs" begin
+    init = initial_belief(pomdp)
+    # @test [pdf(init, s) for s in states(pomdp)] == [0.0, 0.2, 0.2, 0.2, 0.2, 0.2]
+
+    up = DiscreteUpdater(pomdp)
+    belief = initialize_belief(up, init)
+
 end
