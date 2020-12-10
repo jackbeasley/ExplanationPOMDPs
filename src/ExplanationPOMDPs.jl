@@ -3,6 +3,7 @@ module ExplanationPOMDPs
 using POMDPs, Printf, POMDPSimulators
 
 include("OneShot.jl")
+include("Policies.jl")
 
 
 function test_simulation(m::POMDP, policy::Policy, updater::Updater)

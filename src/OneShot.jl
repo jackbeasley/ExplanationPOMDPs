@@ -52,10 +52,10 @@ function POMDPs.observation(pomdp::SingleObservationPOMDP, s::OneShotState, a::A
     )
 end
 
-# Only actions are suspending judgment (a = 0) or choosing a vase (1 < a < n)
+# Only actions are suspending judgment (a = -1) or choosing a vase (0 <= a <= n)
 # configuration
-POMDPs.actions(pomdp::SingleObservationPOMDP) = collect(0:pomdp.balls_per_vase)
-POMDPs.actionindex(::SingleObservationPOMDP, a::Action) = a + 1
+POMDPs.actions(pomdp::SingleObservationPOMDP) = collect(-1:pomdp.balls_per_vase)
+POMDPs.actionindex(::SingleObservationPOMDP, a::Action) = a + 2
 
 initial_belief(pomdp::SingleObservationPOMDP) = DiscreteBelief(
     pomdp,
@@ -68,7 +68,7 @@ function POMDPs.reward(pomdp::SingleObservationPOMDP, s::OneShotState, a::Action
         return 0
     end
 
-    if a == 0
+    if a == -1
         return pomdp.r_no_choice
     elseif a == s
         return pomdp.r_correct
