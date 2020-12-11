@@ -64,7 +64,7 @@ initial_belief(pomdp::SingleObservationPOMDP) = DiscreteBelief(
 export initial_belief
 
 function POMDPs.reward(pomdp::SingleObservationPOMDP, s::OneShotState, a::Action)
-    if !isterminal(pomdp, s)
+    if isterminal(pomdp, s)
         return 0
     end
 

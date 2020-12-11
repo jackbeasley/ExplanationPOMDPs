@@ -11,9 +11,15 @@ export BeliefThresholdPolicy
 
 function POMDPs.action(p::BeliefThresholdPolicy, b)
     bvec = beliefvec(p.problem, length(states(p.problem)), b)
-    max_ind = argmax(bvec)
-    if bvec[max_ind] > p.threshold
-        return actions(p.problem)[max_ind]
+    max_state_ind = argmax(bvec)
+
+    println(b)
+    if max_state_ind <= 2
+        return -1
+    end
+    if bvec[max_state_ind] > p.threshold
+        println(max_state_ind)
+        return states(p.problem)[max_state_ind]
     end
     return p.under_action
 end
