@@ -1,5 +1,6 @@
 using Test
 using ExplanationPOMDPs.SingleObservationExplanation
+using ExplanationPOMDPs.Beliefs
 using POMDPs, BeliefUpdaters, POMDPPolicies, POMDPSimulators
 
 pomdp = SingleObservationPOMDP(4, 2, 0.0, 1.0, -1.0, 1.0)
@@ -23,10 +24,21 @@ end
 end
 
 @testset "Single Observation Simulation" begin
-
     p = FunctionPolicy(s -> 2)
 
     up = DiscreteUpdater(pomdp)
+
+    hr = HistoryRecorder(max_steps=10)
+    history = simulate(hr, pomdp, p, up, initialstate(pomdp))
+
+    # Initial state and state after observation
+    @test length(history) == 2
+end
+
+@testset "Single Observation IBE Simulation" begin
+    p = FunctionPolicy(s -> 2)
+
+    up = IBEUpdater(pomdp, PopperBonus(), 1.0)
 
     hr = HistoryRecorder(max_steps=10)
     history = simulate(hr, pomdp, p, up, initialstate(pomdp))
