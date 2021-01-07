@@ -14,6 +14,7 @@ struct SingleObservationPOMDP <: POMDP{OneShotState,Action,Observation}
     r_correct::Float64
     r_incorrect::Float64
     discount::Float64
+    initial_belief::B
 end
 export SingleObservationPOMDP
 
