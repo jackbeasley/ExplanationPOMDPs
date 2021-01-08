@@ -26,13 +26,17 @@ function run_experiments(problem::POMDP, p::Policy, up::Updater, n::Int, filter_
     history = run_experiment(problem, p, up, filter_init)
     history[:run] = 1
     if n > 1
-        for _ in 2:n
+        for i in 2:n
             run = run_experiment(problem, p, up, filter_init)
-            run[:run] = n
+            run[:run] = i
             append!(history, run)
         end
     end
     return history
+end
+
+function run_experiments(params::Array{Tuple{POMDP,Policy,Updater}}, n::Int, filter_init=true)::DataFrame
+    return vcat(run_experiments(pomdp, p, up, n, filter_init) for (pomdp, p, up) in params)
 end
 ##
 

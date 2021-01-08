@@ -10,8 +10,8 @@ export IBEBonusRule
 struct PopperBonus <: IBEBonusRule end
 export PopperBonus
 
-function bonus(::PopperBonus, prior_belief::T, transition_prob::T) where {T <: Real}
-    return (transition_prob - prior_belief) / (transition_prob + prior_belief)
+function bonus(::PopperBonus, prior_belief::T, obs_prob::T) where {T <: Real}
+    return (obs_prob - prior_belief) / (obs_prob + prior_belief)
 end
 export bonus
 
@@ -60,13 +60,10 @@ function POMDPs.update(bu::IBEUpdater, b::DiscreteBelief, a, o)
             # action
             td = transition(pomdp, s, a)
             for (sp, tp) in weighted_iterator(td) # 
-
-
                 spi = stateindex(pomdp, sp)
                 op = obs_weight(pomdp, s, a, sp, o) # shortcut for observation probability from POMDPModelTools
 
-                # TODO: finish rule here
-                belief_probs[spi] += op * (tp * b.b[s_ind] + bu.bonusWeight * bonus(bu.bonusRule, b.b[s_ind], tp))
+                belief_probs[spi] += op * (tp * b.b[s_ind] + tp * b.b[s_ind] * bu.bonusWeight * bonus(bu.bonusRule, b.b[s_ind], op))
             end
         end
     end
