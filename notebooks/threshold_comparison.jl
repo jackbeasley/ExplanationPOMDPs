@@ -82,8 +82,8 @@ bayes_fig = @df bayes_stats plot(:balls_per_observation, :r_mean, group=:policy,
     legendtitle="Policy",
     dpi=300,
 )
-bayes_fig
 png(bayes_fig, "notebooks/bayes_reward_draws.png")
+bayes_fig
 ##
 popper_stats = combine(
     DataFrames.groupby(
@@ -101,9 +101,6 @@ popper_fig = @df popper_stats plot(:balls_per_observation, :r_mean, group=:polic
     legendtitle="Policy",
     dpi=300,
 )
-popper_fig
 png(popper_fig, "notebooks/popper_reward_draws.png")
-##
-
-Arrow.write("data.arrow", res)
+popper_fig
 
