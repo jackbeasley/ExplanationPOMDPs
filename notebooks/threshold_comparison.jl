@@ -1,6 +1,5 @@
 include("experiment_base.jl")
 using ExplanationPOMDPs.Beliefs
-using IterTools
 using Plots, StatsPlots
 using Printf
 using QMDP

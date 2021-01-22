@@ -2,7 +2,6 @@ using ExplanationPOMDPs.SingleObservationExplanation
 using ExplanationPOMDPs.Policies
 using POMDPs, BeliefUpdaters, POMDPPolicies, POMDPSimulators
 using DataFrames
-
 ##
 
 standard_reward_pomdp(ballsInVase::Int, ballsDrawn::Int) = SingleObservationPOMDP(
@@ -55,6 +54,21 @@ const ExperimentParams = Tuple{SingleObservationPOMDP,Policy,Updater,Dict{Symbol
 
 function run_experiments(params::Vector{ExperimentParams}, n_per_param::Int, filter_init=true)::DataFrame
     return vcat([run_experiments(pomdp, p, up, tags, n_per_param, filter_init) for (pomdp, p, up, tags) in params]...)
+end
+
+function par_run_experiments(params::Vector{ExperimentParams}, n_per_param::Int, filter_init=true)::DataFrame
+    chan = Channel{DataFrame}(length(params))
+    for (pomdp, p, up, tags) in params
+        Threads.@spawn put!(chan, run_experiments($pomdp, $p, $up, $tags, $n_per_param, $filter_init))
+    end
+    df = take!(chan)
+    num_finished = 1
+    while num_finished < length(params)
+        next_df = take!(chan)
+        num_finished += 1
+        vcat(df, next_df)
+    end
+    return df
 end
 ##
 
