@@ -78,10 +78,12 @@ bayes_fig = @df bayes_stats plot(:balls_per_observation, :r_mean, group=:policy,
     title="Reward vs. Draws for Bayes Agents",
     ylabel="Mean reward (n = 1000)", ylims=(-0.5, 0.5),
     xlabel="Balls Drawn from Urn",
-    legend=:bottomright
-
+    legend=:bottomright,
+    legendtitle="Policy",
+    dpi=300,
 )
 bayes_fig
+png(bayes_fig, "notebooks/bayes_reward_draws.png")
 ##
 popper_stats = combine(
     DataFrames.groupby(
@@ -95,9 +97,12 @@ popper_fig = @df popper_stats plot(:balls_per_observation, :r_mean, group=:polic
     title="Reward vs. Draws for IBE Agents",
     ylabel="Mean reward (n = 1000)", ylims=(-0.5, 0.5),
     xlabel="Balls Drawn from Urn",
-    legend=:bottomright
+    legend=:bottomright,
+    legendtitle="Policy",
+    dpi=300,
 )
 popper_fig
+png(popper_fig, "notebooks/popper_reward_draws.png")
 ##
 
 Arrow.write("data.arrow", res)
