@@ -51,7 +51,7 @@ function run_experiments(problem::POMDP, p::Policy, up::Updater, tags::Dict, n::
     return history
 end
 
-const ExperimentParams = Tuple{SingleObservationPOMDP,BeliefThresholdPolicy{SingleObservationPOMDP},Updater,Dict{Symbol,Any}}
+const ExperimentParams = Tuple{SingleObservationPOMDP,Policy,Updater,Dict{Symbol,Any}}
 
 function run_experiments(params::Vector{ExperimentParams}, n_per_param::Int, filter_init=true)::DataFrame
     return vcat([run_experiments(pomdp, p, up, tags, n_per_param, filter_init) for (pomdp, p, up, tags) in params]...)
