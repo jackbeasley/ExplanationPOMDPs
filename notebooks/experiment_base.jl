@@ -3,6 +3,7 @@ using ExplanationPOMDPs.Policies
 using POMDPs, BeliefUpdaters, POMDPPolicies, POMDPSimulators
 using DataFrames
 using ProgressMeter
+using Distributed
 ##
 
 standard_reward_pomdp(ballsInVase::Int, ballsDrawn::Int) = SingleObservationPOMDP(
@@ -53,11 +54,11 @@ end
 
 const ExperimentParams = Tuple{SingleObservationPOMDP,Policy,Updater,Dict{Symbol,Any}}
 
-function run_experiments(params::Vector{ExperimentParams}, n_per_param::Int, filter_init=true)::DataFrame
+function run_experiments(params::AbstractVector{ExperimentParams}, n_per_param::Int, filter_init=true)::DataFrame
     return vcat([run_experiments(pomdp, p, up, tags, n_per_param, filter_init) for (pomdp, p, up, tags) in params]...)
 end
 
-function par_run_experiments(params::Vector{ExperimentParams}, n_per_param::Int, filter_init=true)::DataFrame
+function par_run_experiments(params::AbstractVector{ExperimentParams}, n_per_param::Int, filter_init=true)::DataFrame
     dfs = Vector{DataFrame}(undef, length(params))
     prog = Progress(length(params))
     Threads.@threads for i in 1:length(params)
@@ -67,6 +68,15 @@ function par_run_experiments(params::Vector{ExperimentParams}, n_per_param::Int,
     end
 
     return vcat(dfs...)
+end
+
+function dist_run_experiments(params::AbstractVector{ExperimentParams}, n_per_param::Int, filter_init=true)::DataFrame
+    dfs = Vector{DataFrame}(undef, length(params))
+    df = @showprogress @distributed (vcat) for param in params
+        (pomdp, p, up, tags) = param
+        run_experiments(pomdp, p, up, tags, n_per_param, filter_init)
+    end
+    return df
 end
 ##
 

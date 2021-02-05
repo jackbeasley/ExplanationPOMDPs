@@ -64,7 +64,7 @@ ibe_optimal_params = vec([
 
 params = vcat(bayes_params, ibe_params, ibe_optimal_params, bayes_optimal_params)
 ##
-res = par_run_experiments(params, 10000)
+res = dist_run_experiments(params, 1000)
 ##
 name = @sprintf "threshold_comparison_%s" Dates.format(Dates.now(), "dd-mm-yyyy_HH-MM-SS")
 Arrow.write(joinpath("results", "threshold_comparison.arrow"), res)
