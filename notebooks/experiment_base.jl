@@ -2,6 +2,7 @@ using ExplanationPOMDPs.SingleObservationExplanation
 using ExplanationPOMDPs.Policies
 using POMDPs, BeliefUpdaters, POMDPPolicies, POMDPSimulators
 using DataFrames
+using ProgressMeter
 ##
 
 standard_reward_pomdp(ballsInVase::Int, ballsDrawn::Int) = SingleObservationPOMDP(
@@ -57,18 +58,15 @@ function run_experiments(params::Vector{ExperimentParams}, n_per_param::Int, fil
 end
 
 function par_run_experiments(params::Vector{ExperimentParams}, n_per_param::Int, filter_init=true)::DataFrame
-    chan = Channel{DataFrame}(length(params))
-    for (pomdp, p, up, tags) in params
-        Threads.@spawn put!(chan, run_experiments($pomdp, $p, $up, $tags, $n_per_param, $filter_init))
+    dfs = Vector{DataFrame}(undef, length(params))
+    prog = Progress(length(params))
+    Threads.@threads for i in 1:length(params)
+        (pomdp, p, up, tags) = params[i]
+        dfs[i] = run_experiments(pomdp, p, up, tags, n_per_param, filter_init)
+        next!(prog)
     end
-    df = take!(chan)
-    num_finished = 1
-    while num_finished < length(params)
-        next_df = take!(chan)
-        num_finished += 1
-        vcat(df, next_df)
-    end
-    return df
+
+    return vcat(dfs...)
 end
 ##
 

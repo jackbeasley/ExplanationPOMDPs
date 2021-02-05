@@ -1,11 +1,10 @@
 include("experiment_base.jl")
 using ExplanationPOMDPs.Beliefs
-using Plots, StatsPlots
 using Printf
 using QMDP
-plotlyjs()
 import DataFrames
 import Arrow
+import Dates
 ##
 
 # The goal of this notebook is to compare different selection thresholds at
@@ -17,6 +16,8 @@ solver = QMDPSolver(max_iterations=20,
                     verbose=true
                    ) 
 
+balls_per_observation_range = 5:100
+
 bayes_params = vec([
     (pomdp, 
         BeliefThresholdPolicy(pomdp, threshold, -1), 
@@ -24,7 +25,7 @@ bayes_params = vec([
         Dict{Symbol,Any}(:policy => (@sprintf "Threshold %s" threshold), :rule => "Bayes")) 
     for pomdp in [ 
         standard_reward_pomdp(10, balls_per_observation)
-        for balls_per_observation in 5:25
+        for balls_per_observation in balls_per_observation_range
     ], threshold in thresholds
 ])
 
@@ -35,7 +36,7 @@ bayes_optimal_params = vec([
         Dict{Symbol,Any}(:policy => "QMDP Optimal", :rule => "Bayes")) 
     for pomdp in [ 
         standard_reward_pomdp(10, balls_per_observation)
-        for balls_per_observation in 5:25
+        for balls_per_observation in balls_per_observation_range
     ]
 ])
 
@@ -46,7 +47,7 @@ ibe_params = vec([
         Dict{Symbol,Any}(:policy => (@sprintf "Threshold %s" threshold), :rule => "Popper")) 
     for pomdp in [ 
         standard_reward_pomdp(10, balls_per_observation)
-        for balls_per_observation in 5:25
+        for balls_per_observation in balls_per_observation_range
     ], threshold in thresholds
 ])
 
@@ -57,49 +58,13 @@ ibe_optimal_params = vec([
         Dict{Symbol,Any}(:policy => "QMDP Optimal", :rule => "Popper")) 
     for pomdp in [ 
         standard_reward_pomdp(10, balls_per_observation)
-        for balls_per_observation in 5:25
+        for balls_per_observation in balls_per_observation_range
     ]
 ])
 
 params = vcat(bayes_params, ibe_params, ibe_optimal_params, bayes_optimal_params)
 ##
-res = run_experiments(params, 1000)
+res = par_run_experiments(params, 10000)
 ##
-bayes_stats = combine(
-    DataFrames.groupby(
-        filter(row -> row.rule == "Bayes", res), 
-        [:policy, :balls_per_observation]
-    ),
-     :r => mean
-)
-##
-bayes_fig = @df bayes_stats plot(:balls_per_observation, :r_mean, group=:policy,
-    title="Reward vs. Draws for Bayes Agents",
-    ylabel="Mean reward (n = 1000)", ylims=(-0.5, 0.5),
-    xlabel="Balls Drawn from Urn",
-    legend=:bottomright,
-    legendtitle="Policy",
-    dpi=300,
-)
-png(bayes_fig, "notebooks/bayes_reward_draws.png")
-bayes_fig
-##
-popper_stats = combine(
-    DataFrames.groupby(
-        filter(row -> row.rule == "Popper", res), 
-        [:policy, :balls_per_observation]
-    ),
-     :r => mean
-)
-##
-popper_fig = @df popper_stats plot(:balls_per_observation, :r_mean, group=:policy,
-    title="Reward vs. Draws for IBE Agents",
-    ylabel="Mean reward (n = 1000)", ylims=(-0.5, 0.5),
-    xlabel="Balls Drawn from Urn",
-    legend=:bottomright,
-    legendtitle="Policy",
-    dpi=300,
-)
-png(popper_fig, "notebooks/popper_reward_draws.png")
-popper_fig
-
+name = @sprintf "threshold_comparison_%s" Dates.format(Dates.now(), "dd-mm-yyyy_HH-MM-SS")
+Arrow.write(joinpath("results", "threshold_comparison.arrow"), res)
