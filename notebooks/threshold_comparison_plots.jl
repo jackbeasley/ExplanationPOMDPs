@@ -4,18 +4,18 @@ plotlyjs()
 ##
 res = DataFrame(Arrow.Table("results/threshold_comparison.arrow"))
 ##
-average_rewards_for_rule(df::DataFrame, rule::String) = combine(
+average_rewards_for_rule(df::DataFrame, updater::String) = combine(
     groupby(
         combine(
             groupby(
-                filter(row -> row.rule == rule, df), 
+                filter(row -> row.updater == updater, df), 
                 [:policy, :balls_per_observation, :s]
             ),
-            :r => mean,
+            :r => mean => :r_state_mean,
         ),
         [:policy, :balls_per_observation]
     ), 
-    :r_mean => mean => :r_mean
+    :r_state_mean => mean => :r_mean
 )
 ##
 bayes_stats = average_rewards_for_rule(res, "Bayes")
@@ -34,7 +34,7 @@ bayes_fig
 popper_stats = average_rewards_for_rule(res, "Popper")
 ##
 popper_fig = @df popper_stats plot(:balls_per_observation, :r_mean, group=:policy,
-    title="Reward vs. Draws for IBE Agents",
+    title="Reward vs. Draws for Popper Agents",
     ylabel="Mean reward (n = 10000)", ylims=(-1.0, 1.0),
     xlabel="Balls Drawn from Urn",
     legend=:bottomright,
