@@ -1,16 +1,24 @@
-using Plots, StatsPlots, DataFrames
+using Plots, StatsPlots, DataFrames, StatsBase
 import Arrow
 plotlyjs()
 ##
 res = DataFrame(Arrow.Table("results/threshold_comparison.arrow"))
 ##
-bayes_stats = combine(
-    DataFrames.groupby(
-        filter(row -> row.rule == "Bayes", res), 
+average_rewards_for_rule(df::DataFrame, rule::String) = combine(
+    groupby(
+        combine(
+            groupby(
+                filter(row -> row.rule == rule, df), 
+                [:policy, :balls_per_observation, :s]
+            ),
+            :r => mean,
+        ),
         [:policy, :balls_per_observation]
-    ),
-     :r => mean,
+    ), 
+    :r_mean => mean => :r_mean
 )
+##
+bayes_stats = average_rewards_for_rule(res, "Bayes")
 ##
 bayes_fig = @df bayes_stats plot(:balls_per_observation, :r_mean, group=:policy,
     title="Reward vs. Draws for Bayes Agents",
@@ -23,13 +31,7 @@ bayes_fig = @df bayes_stats plot(:balls_per_observation, :r_mean, group=:policy,
 png(bayes_fig, "notebooks/bayes_reward_draws.png")
 bayes_fig
 ##
-popper_stats = combine(
-    DataFrames.groupby(
-        filter(row -> row.rule == "Popper", res), 
-        [:policy, :balls_per_observation]
-    ),
-     :r => mean
-)
+popper_stats = average_rewards_for_rule(res, "Popper")
 ##
 popper_fig = @df popper_stats plot(:balls_per_observation, :r_mean, group=:policy,
     title="Reward vs. Draws for IBE Agents",
