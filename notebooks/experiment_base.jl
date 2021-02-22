@@ -51,20 +51,19 @@ function run_experiments(problem::POMDP, p::Policy, up::Updater, tags::Dict, n::
     end
     return history
 end
-##
-const ExperimentParams = Tuple{Function,Function,Function,Dict{Symbol,Any}}
 
-function run_experiments(params::AbstractVector{Tuple}, n_per_param::Int, filter_init=true)::DataFrame
+const ExperimentParams = Tuple{SingleObservationPOMDP,Policy,Updater,Dict{Symbol,Any}}
+
+function run_experiments(params::AbstractVector{ExperimentParams}, n_per_param::Int, filter_init=true)::DataFrame
     return vcat([run_experiments(pomdp, p, up, tags, n_per_param, filter_init) for (pomdp, p, up, tags) in params]...)
 end
 
-function par_run_experiments(params, n_per_param::Int, filter_init=true)::DataFrame
+function par_run_experiments(params::AbstractVector{ExperimentParams}, n_per_param::Int, filter_init=true)::DataFrame
     dfs = Vector{DataFrame}(undef, length(params))
     prog = Progress(length(params))
     Threads.@threads for i in 1:length(params)
-        (pomdp, policy, updater, tags) = params[i]
-        pomdp_init = pomdp()
-        dfs[i] = run_experiments(pomdp_init, policy(pomdp_init), updater(pomdp_init), tags, n_per_param, filter_init)
+        (pomdp, p, up, tags) = params[i]
+        dfs[i] = run_experiments(pomdp, p, up, tags, n_per_param, filter_init)
         next!(prog)
     end
 

@@ -14,7 +14,7 @@ thresholds = [0.0, 0.3, 0.6, 0.9]
 balls_per_observation_range = 5:100
 
 pomdps = [ 
-    () -> standard_reward_pomdp(10, balls_per_observation)
+    standard_reward_pomdp(10, balls_per_observation)
     for balls_per_observation in balls_per_observation_range
 ]
 ##
@@ -36,12 +36,12 @@ updaters = [
 ##
 
 params = vec([
-    (pomdp, policy, updater, 
+    (pomdp, policy(pomdp), updater(pomdp), 
     Dict{Symbol,Any}(:policy => policy_name, :updater => updater_name))
  for pomdp in pomdps, (policy_name, policy) in policies, (updater_name, updater) in updaters])
 
 ##
-res = par_run_experiments(params, 1000, true)
+res = par_run_experiments(params, 10000, true)
 ##
 name = @sprintf "threshold_comparison_%s" Dates.format(Dates.now(), "dd-mm-yyyy_HH-MM-SS")
 Arrow.write(joinpath("results", "threshold_comparison.arrow"), res)
