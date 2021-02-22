@@ -15,6 +15,16 @@ function bonus(::PopperBonus, prior_belief::T, obs_prob::T) where {T <: Real}
 end
 export bonus
 
+struct GoodBonus <: IBEBonusRule end
+export GoodBonus
+
+function bonus(::GoodBonus, prior_belief::T, obs_prob::T) where {T <: Real}
+    return log(obs_prob / prior_belief)
+end
+export bonus
+
+
+
 """
     IBEUpdater
 An updater type to update discrete belief using an explanationist rule
@@ -65,7 +75,7 @@ function POMDPs.update(bu::IBEUpdater, b::DiscreteBelief, a, o)
 
                 belief_probs[spi] += op * (tp * b.b[s_ind] + tp * b.b[s_ind] * bu.bonusWeight * bonus(bu.bonusRule, b.b[s_ind], op))
             end
-        end
+    end
     end
 
     bp_sum = sum(belief_probs)
