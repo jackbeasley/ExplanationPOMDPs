@@ -41,10 +41,10 @@ function bonus(::SchupbachBonus,
     p_observation_given_state::T, 
     prior_p_observation::T)::T where {T <: Real}
     p_not_observation_given_state = 1.0 - p_observation_given_state
-    p_state_given_not_evidence = prior_p_state * p_not_observation_given_state
+    p_state_given_not_observation = prior_p_state * p_not_observation_given_state
 
-    numerator = p_observation_given_state - p_hyp_given_not_evidence
-    denominator = p_observation_given_state + p_hyp_given_not_evidence
+    numerator = p_observation_given_state - p_state_given_not_observation
+    denominator = p_observation_given_state + p_state_given_not_observation
 
     if numerator == 0.0 && denominator == 0.0
         return -1.0

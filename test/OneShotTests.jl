@@ -35,7 +35,7 @@ end
     @test length(history) == 2
 end
 
-@testset "Single Observation IBE Simulation" begin
+@testset "Single Observation Popper Simulation" begin
     p = FunctionPolicy(s -> 2)
 
     up = IBEUpdater(pomdp, PopperBonus(), 1.0)
@@ -46,4 +46,30 @@ end
     # Initial state and state after observation
     @test length(history) == 2
 end
+
+@testset "Single Observation Schupbach Simulation" begin
+    p = FunctionPolicy(s -> 2)
+
+    up = IBEUpdater(pomdp, GoodBonus(), 1.0)
+
+    hr = HistoryRecorder(max_steps=10)
+    history = simulate(hr, pomdp, p, up, initialstate(pomdp))
+
+    # Initial state and state after observation
+    @test length(history) == 2
+end
+
+@testset "Single Observation Good Simulation" begin
+    p = FunctionPolicy(s -> 2)
+
+    up = IBEUpdater(pomdp, GoodBonus(), 1.0)
+
+    hr = HistoryRecorder(max_steps=10)
+    history = simulate(hr, pomdp, p, up, initialstate(pomdp))
+
+    # Initial state and state after observation
+    @test length(history) == 2
+end
+
+
 

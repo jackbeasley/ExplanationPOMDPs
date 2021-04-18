@@ -11,7 +11,7 @@ import Dates
 # different difficulty levels
 thresholds = [0.0, 0.3, 0.6, 0.9]
 
-balls_per_observation_range = 5:100
+balls_per_observation_range = 5:10:105
 
 pomdps = [ 
     standard_reward_pomdp(10, balls_per_observation)
@@ -30,8 +30,10 @@ policies = vcat([
 ], [("QMDP Optimal", pomdp -> solve(solver, pomdp))])
 ##
 updaters = [
-    ("Bayes", pomdp -> DiscreteUpdater(pomdp)),
+    ("Schupbach", pomdp -> IBEUpdater(pomdp, SchupbachBonus(), 1.0)),
+    ("Good", pomdp -> IBEUpdater(pomdp, GoodBonus(), 1.0)),
     ("Popper", pomdp -> IBEUpdater(pomdp, PopperBonus(), 1.0)),
+    ("Bayes", pomdp -> DiscreteUpdater(pomdp)),
 ]
 ##
 
@@ -41,7 +43,7 @@ params = vec([
  for pomdp in pomdps, (policy_name, policy) in policies, (updater_name, updater) in updaters])
 
 ##
-res = par_run_experiments(params, 10000, true)
+res = par_run_experiments(params, 1000, true)
 ##
 name = @sprintf "threshold_comparison_%s" Dates.format(Dates.now(), "dd-mm-yyyy_HH-MM-SS")
-Arrow.write(joinpath("results", "threshold_comparison.arrow"), res)
+Arrow.write(joinpath("results", "threshold_comparison_new.arrow"), res)
