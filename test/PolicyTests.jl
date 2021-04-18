@@ -7,7 +7,7 @@ pomdp = SingleObservationPOMDP(4, 2, 0.0, 1.0, -1.0, 1.0)
 
 @testset "Simulation with threshold policy" begin
 
-    p = BeliefThresholdPolicy(pomdp, 0.5, -1, collect(0:length(states(pomdp))))
+    p = BeliefThresholdPolicy(pomdp, 0.4, -1, collect(0:length(states(pomdp))))
     up = DiscreteUpdater(pomdp)
     hr = HistoryRecorder(max_steps=10)
     history = simulate(hr, pomdp, p, up, initialstate(pomdp))

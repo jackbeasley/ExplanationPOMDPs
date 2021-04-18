@@ -7,7 +7,7 @@ struct BeliefThresholdPolicy{P <: Union{POMDP,MDP}} <: Policy
     fallback_action::Int
     policy_vec::Vector{Int}
 end
-BeliefThresholdPolicy(p, th, fallback) = BeliefThresholdPolicy(
+BeliefThresholdPolicy(p::P, th, fallback) where {P <: Union{POMDP,MDP}} = BeliefThresholdPolicy(
     p, 
     th, 
     fallback, 

@@ -8,22 +8,51 @@ abstract type IBEBonusRule end
 export IBEBonusRule
 
 struct PopperBonus <: IBEBonusRule end
-export PopperBonus
 
-function bonus(::PopperBonus, prior_belief::T, obs_prob::T) where {T <: Real}
-    return (obs_prob - prior_belief) / (obs_prob + prior_belief)
+function bonus(::PopperBonus, 
+    prior_p_state::T, 
+    p_observation_given_state::T, 
+    prior_p_observation::T)::T where {T <: Real}
+    return (p_observation_given_state - prior_p_observation) / (p_observation_given_state + prior_p_observation)
 end
-export bonus
+export PopperBonus, bonus
 
 struct GoodBonus <: IBEBonusRule end
-export GoodBonus
-
-function bonus(::GoodBonus, prior_belief::T, obs_prob::T) where {T <: Real}
-    return log(obs_prob / prior_belief)
+function rescale(x, a=2)
+	d = 2 * a^2
+    	if x >= 0
+		return 1 - exp(-1 * (x^2) / d)
+	else
+		return -1 + exp(-1 * (x^2) / d)
+	end
 end
-export bonus
+function bonus(::GoodBonus, 
+    prior_p_state::T, 
+    p_observation_given_state::T, 
+    prior_p_observation::T)::T where {T <: Real}
+    val = @fastmath log(p_observation_given_state / prior_p_observation) 
+    return rescale(val)
+end
+export GoodBonus, bonus
 
+struct SchupbachBonus <: IBEBonusRule end
+function bonus(::SchupbachBonus, 
+    prior_p_state::T,
+    p_observation_given_state::T, 
+    prior_p_observation::T)::T where {T <: Real}
+    p_not_observation_given_state = 1.0 - p_observation_given_state
+    p_state_given_not_evidence = prior_p_state * p_not_observation_given_state
 
+    numerator = p_observation_given_state - p_hyp_given_not_evidence
+    denominator = p_observation_given_state + p_hyp_given_not_evidence
+
+    if numerator == 0.0 && denominator == 0.0
+        return -1.0
+    end
+    res = numerator / denominator
+    return res
+end
+export SchupbachBonus, bonus
 
 """
     IBEUpdater
@@ -61,20 +90,63 @@ function POMDPs.update(bu::IBEUpdater, b::DiscreteBelief, a, o)
     state_space = b.state_list
     belief_probs = zeros(length(state_space))
 
+    # Note: belief updates use POMDP terminology, rather than Inference-to-best
+    # explanation terminology. Thus, hypotheses are states (unknown which is
+    # right to the agent in a POMDP) and evidence (observed by the agent) is an
+    # observation.
+
+    # Calculate P(Observation | State)P(State) + (Scaled Bonus) for each State
     for (s_ind, s) in enumerate(state_space)
 
-        if pdf(b, s) > 0.0 # Does the agent believe this state is possible?
+        # If state is impossible given current beliefs the update will always
+        # result in zero
+        if pdf(b, s) > 0.0
 
             # The agent is assumed to know the structure of the problem, so use
             # probabilities of each next state from our current state and
-            # action
+            # action. In the OneShot context, this is equivalent to knowing
+            # that there is equal chance of any hypothesis / urn configuration
+            # being selected by the experimenters. In other words, this is a
+            # uniform prior over hypotheses / states, but specified by the
+            # agent's knowledge of the problem.
             td = transition(pomdp, s, a)
-            for (sp, tp) in weighted_iterator(td) # 
-                spi = stateindex(pomdp, sp)
-                op = obs_weight(pomdp, s, a, sp, o) # shortcut for observation probability from POMDPModelTools
+            
+            # Overall probability of observation no matter what the next state
+            # is given current state belief (pdf(b, s)) and transition
+            # probabilities
+            p_observation = sum(
+                pdf(b, s) * prob * pdf(observation(pomdp, s, a, state), o) 
+                for (state, prob) in weighted_iterator(td)
+            )
 
-                belief_probs[spi] += op * (tp * b.b[s_ind] + tp * b.b[s_ind] * bu.bonusWeight * bonus(bu.bonusRule, b.b[s_ind], op))
-            end
+            # Loop through every possible next state. Note that in a one-shot
+            # context where all evidence is given in single observation, there
+            # is only one final state where the transition probability is 1.0,
+            # so this loop will, in practice, only add a non-zero value to the
+            # belief for that final state.
+            for (sp, tp) in weighted_iterator(td)
+                spi = stateindex(pomdp, sp)
+
+                # Calculate the objective probability of this observation given
+                # the state we are calculating beliefs for, s, and for each
+                # possible next state.
+                p_observation_given_state = pdf(observation(pomdp, s, a, sp), o)
+
+                prior_p_state = tp * pdf(b, s)
+
+                bayes_p_state_given_observation = prior_p_state * p_observation_given_state
+
+                explanatory_bonus = bu.bonusWeight * bayes_p_state_given_observation * bonus(
+                    bu.bonusRule, 
+                    prior_p_state, 
+                    bayes_p_state_given_observation, 
+                    p_observation
+                )
+                # bonus = bu.bonusWeight * bayes_p_state * bonus(bu.bonusRule, b[s_ind], op)
+
+                belief_probs[spi] += bayes_p_state_given_observation + explanatory_bonus
+                # belief_probs[spi] += op * (tp * b.b[s_ind] + tp * b.b[s_ind] * bu.bonusWeight * bonus(bu.bonusRule, b.b[s_ind], op))
+        end
     end
     end
 
@@ -97,7 +169,5 @@ function POMDPs.update(bu::IBEUpdater, b::DiscreteBelief, a, o)
 end
 
 POMDPs.update(bu::IBEUpdater, b::Any, a, o) = update(bu, initialize_belief(bu, b), a, o)
-
-
 
 end
