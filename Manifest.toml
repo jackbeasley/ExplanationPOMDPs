@@ -89,6 +89,12 @@ git-tree-sha1 = "1289b57e8cf019aede076edab0587eb9644175bd"
 uuid = "9e28174c-4ba2-5203-b857-d8d62c4213ee"
 version = "1.0.2"
 
+[[BinaryProvider]]
+deps = ["Libdl", "Logging", "SHA"]
+git-tree-sha1 = "ecdec412a9abc8db54c0efc5548c64dfce072058"
+uuid = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
+version = "0.5.10"
+
 [[BitIntegers]]
 deps = ["Random"]
 git-tree-sha1 = "f0853a9d2cf2cf4f9fbd98c6e19ff1627e65a9a7"
@@ -147,6 +153,12 @@ deps = ["Lz4_jll", "TranscodingStreams"]
 git-tree-sha1 = "59fe0cb37784288d6b9f1baebddbf75457395d40"
 uuid = "5ba52731-8f18-5e0d-9241-30f10d1ec561"
 version = "0.4.0"
+
+[[CodecZlib]]
+deps = ["TranscodingStreams", "Zlib_jll"]
+git-tree-sha1 = "ded953804d019afa9a3f98981d99b33e3db7b6da"
+uuid = "944b1d66-785c-5afd-91f1-9de20f533193"
+version = "0.7.0"
 
 [[CodecZstd]]
 deps = ["TranscodingStreams", "Zstd_jll"]
@@ -243,6 +255,11 @@ version = "0.4.13"
 [[Dates]]
 deps = ["Printf"]
 uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
+
+[[Decimals]]
+git-tree-sha1 = "e98abef36d02a0ec385d68cd7dadbce9b28cbd88"
+uuid = "abce61dc-4473-55a0-ba07-351d65e31d42"
+version = "0.4.1"
 
 [[DelimitedFiles]]
 deps = ["Mmap"]
@@ -671,6 +688,12 @@ version = "0.9.0"
 deps = ["Libdl"]
 uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
+[[LittleEndianBase128]]
+deps = ["Test"]
+git-tree-sha1 = "2cad132b52c86e0ccfc75116362ab57f0047893a"
+uuid = "1724a1d5-ab78-548d-94b3-135c294f96cf"
+version = "0.3.0"
+
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
@@ -882,6 +905,12 @@ git-tree-sha1 = "2276ac65f1e236e0a6ea70baff3f62ad4c625345"
 uuid = "d96e819e-fc66-5662-9728-84c9c7592b0a"
 version = "0.12.2"
 
+[[Parquet]]
+deps = ["CategoricalArrays", "CodecZlib", "CodecZstd", "DataAPI", "Dates", "Decimals", "LittleEndianBase128", "Missings", "Mmap", "SentinelArrays", "Snappy", "Tables", "Thrift"]
+git-tree-sha1 = "5eea735ea886485593e399ecdb2177e4940047b6"
+uuid = "626c502c-15b0-58ad-a749-f091afb673ae"
+version = "0.8.1"
+
 [[Parsers]]
 deps = ["Dates"]
 git-tree-sha1 = "c8abc88faa3f7a3950832ac5d6e690881590d6dc"
@@ -1086,6 +1115,12 @@ git-tree-sha1 = "daf7aec3fe3acb2131388f93a4c409b8c7f62226"
 uuid = "699a6c99-e7fa-54fc-8d76-47d257e15c1d"
 version = "0.9.3"
 
+[[Snappy]]
+deps = ["BinaryProvider", "Libdl", "Random", "Test"]
+git-tree-sha1 = "25620a91907972a05863941d6028791c2613888e"
+uuid = "59d4ed8c-697a-5b28-a4c7-fe95c22820f9"
+version = "0.3.0"
+
 [[Sockets]]
 uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
 
@@ -1189,6 +1224,18 @@ uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
 [[Test]]
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[[Thrift]]
+deps = ["Distributed", "Sockets", "ThriftJuliaCompiler_jll"]
+git-tree-sha1 = "1741bd68c3d4b4b397391d6d3d16bc100b267003"
+uuid = "8d9c9c80-f77e-5080-9541-c6f69d204e22"
+version = "0.8.0"
+
+[[ThriftJuliaCompiler_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "7ecfd6e1d52c8ad58443a1facf2a2ab691cc7355"
+uuid = "815b9798-8dd0-5549-95cc-3cf7d01bce66"
+version = "0.12.0+0"
 
 [[TimeZones]]
 deps = ["Dates", "EzXML", "Mocking", "Pkg", "Printf", "RecipesBase", "Serialization", "Unicode"]

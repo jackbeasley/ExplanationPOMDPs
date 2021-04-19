@@ -19,30 +19,39 @@ function run_experiment(problem::SingleObservationPOMDP, p::Policy, up::Updater,
     hr = HistoryRecorder(max_steps=3)
     history = simulate(hr, problem, p, up, initialstate(problem))
     df = filter_init ? DataFrame(history[2:2]) : DataFrame(history)
-    df[:b] = [b.b for b in df[:b]]
-    df[:bp] = [bp.b for bp in df[:bp]]
+    # df[:b] = [b.b for b in df[:b]]
+    # df[:bp] = [bp.b for bp in df[:bp]]
 
-    df["balls_per_vase"] = problem.balls_per_vase
-    df["balls_per_observation"] = problem.balls_per_observation
-    df["r_correct"] = problem.r_correct
-    df["r_incorrect"] = problem.r_incorrect
-    df["r_no_choice"] = problem.r_no_choice
-    df["discount"] = problem.discount
+    df[!,:s] = convert.(Int8, df[!,:s])
+    df[!,:a] = convert.(Int8, df[!,:a])
+    df[!,:sp] = convert.(Int8, df[!,:sp])
+    df[!,:o] = convert.(Int8, df[!,:o])
+    df[!,:t] = convert.(Int8, df[!,:t])
+    df[!,:r] = convert.(Float16, df[!,:r])
+
+    df[:balls_per_vase] = Int8(problem.balls_per_vase)
+    df[:balls_per_observation] = Int8(problem.balls_per_observation)
+    # df["r_correct"] = (Float16(v) for v in problem.r_correct)
+    # df["r_incorrect"] = (Float16(v) for v in problem.r_incorrect)
+    # df["r_no_choice"] = (Float16(v) for v in problem.r_no_choice)
+    df[:discount] = Float16(problem.discount)
     empty_columns = [
         Symbol(names(df)[i])
         for (i, coltype) in enumerate(eltypes(df)) if coltype == Nothing
     ]
     select!(df, Not(empty_columns))
+    select!(df, Not(:b))
+    select!(df, Not(:bp))
     return df
 end
 
 function run_experiments(problem::POMDP, p::Policy, up::Updater, tags::Dict, n::Int, filter_init=true)::DataFrame
     history = run_experiment(problem, p, up, filter_init)
-    history[:run] = 1
+    history[:run] = Int16(1)
     if n > 1
         for i in 2:n
             run = run_experiment(problem, p, up, filter_init)
-            run[:run] = i
+        run[:run] = Int16(i)
             append!(history, run)
         end
     end

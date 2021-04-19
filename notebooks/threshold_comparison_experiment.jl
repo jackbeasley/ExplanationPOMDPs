@@ -43,7 +43,7 @@ params = vec([
  for pomdp in pomdps, (policy_name, policy) in policies, (updater_name, updater) in updaters])
 
 ##
-res = par_run_experiments(params, 1000, true)
+res = par_run_experiments(params, 10000, true)
 ##
 name = @sprintf "threshold_comparison_%s" Dates.format(Dates.now(), "dd-mm-yyyy_HH-MM-SS")
 Arrow.write(joinpath("results", "threshold_comparison_new.arrow"), res)

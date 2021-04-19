@@ -1,19 +1,24 @@
-using Plots, StatsPlots, DataFrames, StatsBase, VegaLite
+using DataFrames, StatsBase, VegaLite
 import Arrow
-gr()
 ##
-# res = DataFrame(Arrow.Table("results/threshold_comparison_new.arrow"))
+res = DataFrame(Arrow.Table("results/threshold_comparison_no_optim.arrow"))
 ##
-reward_counts = combine(groupby(res, [:r, :policy, :updater, :balls_per_observation]), nrow => :count)
+mean_rewards = combine(
+    groupby(res, [:policy, :updater, :balls_per_observation]), 
+    :r => mean
+)
 ##
-# limited = filter(row -> row.balls_per_observation < 26, reward_counts) 
-##
-reward_counts |> @vlplot(
-    mark = :bar,
-    x = {:r, type = "ordinal"},
-    y = :count,
-    column = :updater,
-    row = :balls_per_observation
+p = filter(row -> row.balls_per_observation < 21, mean_rewards) |> @vlplot(
+    title = "Average Reward vs. Belief Threshold by Update Rule ",
+    mark = :line,
+    x = {:policy, title = "Belief Threshold"},
+    y = {:r_mean, title = "Mean Reward (n=10,000)"},
+    color = {:updater, title = "Update Rule"},
+    wrap = {:balls_per_observation, title = "Number of Draws from Urn", type = "ordinal"},
+    height = 100,
+    width = 220,
+    columns = 2,
 ) # TODO: need to integrate policy / threshold
-
-
+p |> save("policy_vs_rule.svg")
+p
+##

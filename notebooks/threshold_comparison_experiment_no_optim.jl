@@ -1,23 +1,18 @@
 include("experiment_base.jl")
 using ExplanationPOMDPs.Beliefs
-using Printf
-using QMDP
-import DataFrames
+using Printf, DataFrames
 import Arrow
-import Dates
 ##
 
 # The goal of this notebook is to compare different selection thresholds at
 # different difficulty levels
-thresholds = collect(0.0:0.05:0.95)
+thresholds = collect(0.0:0.01:0.95)
 
-balls_per_observation_range = [2^i for i in 1:6]
-##
+balls_per_observation_range = [5, 10, 15, 20, 25, 30]
 pomdps = [ 
     standard_reward_pomdp(10, balls_per_observation)
     for balls_per_observation in balls_per_observation_range
 ]
-##
 policies = [
         (
             threshold, 
@@ -25,14 +20,12 @@ policies = [
         )
         for threshold in thresholds
 ]
-##
 updaters = [
     ("Schupbach", pomdp -> IBEUpdater(pomdp, SchupbachBonus(), 1.0)),
     ("Good", pomdp -> IBEUpdater(pomdp, GoodBonus(), 1.0)),
     ("Popper", pomdp -> IBEUpdater(pomdp, PopperBonus(), 1.0)),
     ("Bayes", pomdp -> DiscreteUpdater(pomdp)),
 ]
-##
 
 params = vec([
     (pomdp, policy(pomdp), updater(pomdp), 
@@ -40,7 +33,10 @@ params = vec([
  for pomdp in pomdps, (policy_name, policy) in policies, (updater_name, updater) in updaters])
 
 ##
-res = par_run_experiments(params, 1000, true)
+let res
+    res = par_run_experiments(params, 10000, true)
+    Arrow.write(joinpath("results", "threshold_comparison_no_optim.arrow"), res, compress=:zstd)
+end
 ##
-name = @sprintf "threshold_comparison_%s" Dates.format(Dates.now(), "dd-mm-yyyy_HH-MM-SS")
-Arrow.write(joinpath("results", "threshold_comparison_new.arrow"), res)
+#    name = @sprintf "threshold_comparison_%s" Dates.format(Dates.now(), "dd-mm-yyyy_HH-MM-SS")
+#    Arrow.write(joinpath("results", "threshold_comparison_no_optim.arrow"), res)
