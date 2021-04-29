@@ -20,7 +20,6 @@ explanation_states(balls_in_vase::Int, observation_steps::Int) = Base.Iterators.
 )
 export explanation_states
 
-
 ##
 
 const Action = T where T <: Integer;
@@ -65,7 +64,7 @@ POMDPs.initialstate(pomdp::SingleObservationPOMDP) = SparseCat(
 POMDPs.observations(pomdp::SingleObservationPOMDP) = collect(0:pomdp.balls_per_observation)
 POMDPs.obsindex(::SingleObservationPOMDP, o::Observation) = o + 1
 # Next state will be the one with 
-function POMDPs.observation(pomdp::SingleObservationPOMDP, s::OneShotState, a::Action, sn::OneShotState) 
+function POMDPs.observation(pomdp::SingleObservationPOMDP, s::OneShotState) 
     if s.end_state
         # Transition probabilities make this impossible, so this uniform choice is entirely arbitrary
         return DiscreteUniform(0, pomdp.balls_per_observation)

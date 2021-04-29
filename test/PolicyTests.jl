@@ -3,7 +3,7 @@ using ExplanationPOMDPs.SingleObservationExplanation
 using ExplanationPOMDPs.Policies
 using POMDPs, BeliefUpdaters, POMDPPolicies, POMDPSimulators
 
-pomdp = SingleObservationPOMDP(4, 2, 0.0, 1.0, -1.0, 1.0)
+pomdp = SingleObservationPOMDP(4, 10, 0.0, 1.0, -1.0, 1.0)
 
 @testset "Simulation with threshold policy" begin
 
@@ -14,8 +14,8 @@ pomdp = SingleObservationPOMDP(4, 2, 0.0, 1.0, -1.0, 1.0)
 
     # Initial state and state after observation
     @test length(history) == 2
-    finalstep = eachstep(history)[2]
-    @test finalstep[:s] == finalstep[:a]
+    finalstep = eachstep(history)[end]
+    @test finalstep[:s].hypothesis_num == finalstep[:a]
 
     p = BeliefThresholdPolicy(pomdp, 1.0, -1, collect(0:length(states(pomdp))))
     up = DiscreteUpdater(pomdp)

@@ -23,7 +23,7 @@ function POMDPs.action(p::BeliefThresholdPolicy, b)
         return -1
     end
     if bvec[max_state_ind] > p.threshold
-        return states(p.problem)[max_state_ind]
+        return states(p.problem)[max_state_ind].hypothesis_num
     end
     return p.fallback_action
 end
