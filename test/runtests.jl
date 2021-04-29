@@ -1,4 +1,4 @@
 using Test
 
-include("PolicyTests.jl")
 include("OneShotTests.jl")
+include("PolicyTests.jl")

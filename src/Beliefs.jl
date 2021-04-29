@@ -136,16 +136,16 @@ function POMDPs.update(bu::IBEUpdater, b::DiscreteBelief, a, o)
 
                 bayes_p_state_given_observation = prior_p_state * p_observation_given_state
 
-                explanatory_bonus = bu.bonusWeight * bayes_p_state_given_observation * bonus(
-                    bu.bonusRule, 
-                    prior_p_state, 
-                    bayes_p_state_given_observation, 
-                    p_observation
-                )
-                # bonus = bu.bonusWeight * bayes_p_state * bonus(bu.bonusRule, b[s_ind], op)
-
-                belief_probs[spi] += bayes_p_state_given_observation + explanatory_bonus
-                # belief_probs[spi] += op * (tp * b.b[s_ind] + tp * b.b[s_ind] * bu.bonusWeight * bonus(bu.bonusRule, b.b[s_ind], op))
+                belief_probs[spi] += bayes_p_state_given_observation
+                if bayes_p_state_given_observation > 0.0
+                    explanatory_bonus = bu.bonusWeight * bayes_p_state_given_observation * bonus(
+                        bu.bonusRule, 
+                        prior_p_state, 
+                        bayes_p_state_given_observation, 
+                        p_observation
+                    )
+                    belief_probs[spi] += explanatory_bonus
+                end
         end
     end
     end

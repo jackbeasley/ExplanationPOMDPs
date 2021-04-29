@@ -3,16 +3,45 @@ using ExplanationPOMDPs.SingleObservationExplanation
 using ExplanationPOMDPs.Beliefs
 using POMDPs, BeliefUpdaters, POMDPPolicies, POMDPSimulators
 
+@testset "States" begin
+    states = collect(explanation_states(2, 2))
+    @test states == [
+        OneShotState(true, -1, -1),
+        OneShotState(false, 0, 1),
+        OneShotState(false, 1, 1),
+        OneShotState(false, 2, 1),
+        OneShotState(false, 0, 2),
+        OneShotState(false, 1, 2),
+        OneShotState(false, 2, 2),
+    ]
+end
+
 pomdp = SingleObservationPOMDP(4, 2, 0.0, 1.0, -1.0, 1.0)
 @testset "Single Observation States" begin
-    states = POMDPs.states(pomdp)
+
+    @test POMDPs.states(pomdp) == [
+        OneShotState(true, -1, -1),
+        OneShotState(false, 0, 1),
+        OneShotState(false, 1, 1),
+        OneShotState(false, 2, 1),
+        OneShotState(false, 3, 1),
+        OneShotState(false, 4, 1),
+        OneShotState(false, 0, 2),
+        OneShotState(false, 1, 2),
+        OneShotState(false, 2, 2),
+        OneShotState(false, 3, 2),
+        OneShotState(false, 4, 2),
+    ]
     # Ensure all stateindices map correctly
-    @test states == [states[stateindex(pomdp, s)] for s in states]
+    states_vec = POMDPs.states(pomdp)
+    indices = [stateindex(pomdp, s) for s in states_vec]
+    @test collect(1:length(states_vec)) == indices
+    @test states_vec == states_vec[indices]
 
-    terminality = [isterminal(pomdp, s) for s in states]
-    @test [false, true, false, false, false, false, false] == terminality
+    terminality = [isterminal(pomdp, s) for s in states_vec]
+    @test [true, false, false, false, false, false, false, false, false, false, false] == terminality
 
-    @test uniform_state_probs(pomdp) == [0.0, 0.0, 0.2, 0.2, 0.2, 0.2, 0.2]
+    @test start_state_probs(pomdp) == [0.0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0]
 end
 
 @testset "Initial Beliefs" begin
@@ -30,6 +59,9 @@ end
 
     hr = HistoryRecorder(max_steps=10)
     history = simulate(hr, pomdp, p, up, initialstate(pomdp))
+    for h in history
+    println(h.s, " - ", [pdf(h.b, s) for s in states(pomdp)])
+end
 
     # Initial state and state after observation
     @test length(history) == 2
