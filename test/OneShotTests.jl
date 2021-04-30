@@ -1,6 +1,7 @@
 using Test
 using ExplanationPOMDPs.SingleObservationExplanation
 using ExplanationPOMDPs.Beliefs
+using ExplanationPOMDPs.Policies
 using POMDPs, BeliefUpdaters, POMDPPolicies, POMDPSimulators
 
 @testset "States" begin
@@ -41,16 +42,16 @@ pomdp = SingleObservationPOMDP(4, 2, 0.0, 1.0, -1.0, 1.0)
     terminality = [isterminal(pomdp, s) for s in states_vec]
     @test [true, false, false, false, false, false, false, false, false, false, false] == terminality
 
-    @test start_state_probs(pomdp) == [0.0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0]
+    @test [pdf(initialstate(pomdp), s) for s in states_vec] == [0.0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0]
 end
 
-@testset "Initial Beliefs" begin
-    init = initial_belief(pomdp)
-    # @test [pdf(init, s) for s in states(pomdp)] == [0.0, 0.2, 0.2, 0.2, 0.2, 0.2]
-
-    up = DiscreteUpdater(pomdp)
-    belief = initialize_belief(up, init)
-end
+# @testset "Initial Beliefs" begin
+#    init = initial_belief(pomdp)
+#    # @test [pdf(init, s) for s in states(pomdp)] == [0.0, 0.2, 0.2, 0.2, 0.2, 0.2]
+#
+#    up = DiscreteUpdater(pomdp)
+#    belief = initialize_belief(up, init)
+# end
 
 @testset "Single Observation Simulation" begin
     p = FunctionPolicy(s -> 2)
@@ -59,13 +60,36 @@ end
 
     hr = HistoryRecorder(max_steps=10)
     history = simulate(hr, pomdp, p, up, initialstate(pomdp))
-    for h in history
-    println(h.s, " - ", [pdf(h.b, s) for s in states(pomdp)])
-end
 
     # Initial state and state after observation
     @test length(history) == 2
 end
+
+@testset "skew beliefs" begin
+    p = BeliefThresholdPolicy(pomdp, 0.4, -1, collect(0:length(states(pomdp))))
+    up = DiscreteUpdater(pomdp)
+    hr = HistoryRecorder(max_steps=10)
+    history = simulate(hr, pomdp, p, up, initialstate_prior(pomdp, [0.0, 1.0, 0.0, 0.0, 0.0]))
+
+    # Initial state and state after observation
+    @test length(history) == 2
+    bvec = beliefvec(pomdp, length(states(pomdp)), history[end].b)
+    state = states(pomdp)[argmax(bvec)]
+    @test state.hypothesis_num == 1
+
+    p = BeliefThresholdPolicy(pomdp, 0.4, -1, collect(0:length(states(pomdp))))
+    up = DiscreteUpdater(pomdp)
+    hr = HistoryRecorder(max_steps=10)
+    history = simulate(hr, pomdp, p, up, initialstate_prior(pomdp, [0.0, 0.0, 0.0, 1.0, 0.0]))
+
+    # Initial state and state after observation
+    @test length(history) == 2
+    bvec = beliefvec(pomdp, length(states(pomdp)), history[end].b)
+    state = states(pomdp)[argmax(bvec)]
+    @test state.hypothesis_num == 3
+end
+
+
 
 @testset "Single Observation Popper Simulation" begin
     p = FunctionPolicy(s -> 2)

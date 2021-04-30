@@ -51,10 +51,21 @@ function POMDPs.stateindex(pomdp::SingleObservationPOMDP, s::OneShotState)
     
     return ((pomdp.balls_in_vase + 1) * (s.step_num - 1) + s.hypothesis_num) + 2
 end
-POMDPs.initialstate(pomdp::SingleObservationPOMDP) = SparseCat(
-    states(pomdp),
-    start_state_probs(pomdp)
-)
+function POMDPs.initialstate(pomdp::SingleObservationPOMDP)::SparseCat
+    num_vase_configurations = pomdp.balls_in_vase + 1
+    prob = 1.0 / num_vase_configurations
+    return initialstate_prior(pomdp, fill(prob, num_vase_configurations))
+end
+
+# Uniform probability to all hypothesis states, which each correspond to vase
+# configurations, with no chance of going to end state
+function initialstate_prior(pomdp::SingleObservationPOMDP, hypothesis_probs::AbstractVector{F})::SparseCat{Vector{OneShotState{Int}},Vector{F}} where {F <: Real}
+    return SparseCat(
+        states(pomdp),
+        [!s.end_state && s.step_num == 1 ? hypothesis_probs[s.hypothesis_num + 1] : 0.0 for s in states(pomdp)]
+    )
+end
+export initialstate_prior
 
 
 # Each observation is the cumulative affect of observing balls_per_observation
@@ -80,12 +91,6 @@ end
 POMDPs.actions(pomdp::SingleObservationPOMDP) = collect(-1:pomdp.balls_in_vase)
 POMDPs.actionindex(::SingleObservationPOMDP, a::Action) = a + 2
 
-initial_belief(pomdp::SingleObservationPOMDP) = DiscreteBelief(
-    pomdp,
-    start_state_probs(pomdp)
-)
-export initial_belief
-
 function POMDPs.reward(pomdp::SingleObservationPOMDP, s::OneShotState, a::Action)
     if isterminal(pomdp, s)
         return 0
@@ -99,15 +104,6 @@ function POMDPs.reward(pomdp::SingleObservationPOMDP, s::OneShotState, a::Action
         return pomdp.r_incorrect
     end
 end
-
-# Uniform probability to all hypothesis states, which each correspond to vase
-# configurations, with no chance of going to end state
-function start_state_probs(pomdp::SingleObservationPOMDP)::Vector{Float64}
-    num_vase_configurations = pomdp.balls_in_vase + 1
-    prob = 1.0 / num_vase_configurations
-    return [s.step_num == 1 ? prob : 0.0 for s in states(pomdp)]
-end
-export start_state_probs
 
 function POMDPs.transition(pomdp::SingleObservationPOMDP, s::OneShotState, a::Action)
     n_states = length(POMDPs.states(pomdp))
