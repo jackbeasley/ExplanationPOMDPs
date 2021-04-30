@@ -21,15 +21,15 @@ function run_experiment(problem::SingleObservationPOMDP, p::Policy, up::Updater,
     df = filter_init ? DataFrame(history[2:2]) : DataFrame(history)
     # df[:b] = [b.b for b in df[:b]]
     # df[:bp] = [bp.b for bp in df[:bp]]
-
-    df[!,:s] = convert.(Int8, df[!,:s])
+    
+    df[!,:hyp_num] = map(s -> s.hypothesis_num, df[:s])
+    df[!,:step_num] = map(s -> s.step_num, df[:s])
     df[!,:a] = convert.(Int8, df[!,:a])
-    df[!,:sp] = convert.(Int8, df[!,:sp])
     df[!,:o] = convert.(Int8, df[!,:o])
     df[!,:t] = convert.(Int8, df[!,:t])
     df[!,:r] = convert.(Float16, df[!,:r])
 
-    df[:balls_per_vase] = Int8(problem.balls_per_vase)
+    df[:balls_in_vase] = Int8(problem.balls_in_vase)
     df[:balls_per_observation] = Int8(problem.balls_per_observation)
     # df["r_correct"] = (Float16(v) for v in problem.r_correct)
     # df["r_incorrect"] = (Float16(v) for v in problem.r_incorrect)
@@ -42,6 +42,8 @@ function run_experiment(problem::SingleObservationPOMDP, p::Policy, up::Updater,
     select!(df, Not(empty_columns))
     select!(df, Not(:b))
     select!(df, Not(:bp))
+    select!(df, Not(:sp))
+    select!(df, Not(:s))
     return df
 end
 
