@@ -39,7 +39,7 @@ pomdp = SingleObservationPOMDP(4, 2, 0.0, 1.0, -1.0, 1.0)
     @test collect(1:length(states_vec)) == indices
     @test states_vec == states_vec[indices]
 
-    terminality = [isterminal(pomdp, s) for s in states_vec]
+    terminality = [POMDPs.isterminal(pomdp, s) for s in states_vec]
     @test [true, false, false, false, false, false, false, false, false, false, false] == terminality
 
     @test [pdf(initialstate(pomdp), s) for s in states_vec] == [0.0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0]

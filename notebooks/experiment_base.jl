@@ -23,7 +23,7 @@ function run_experiment(problem::SingleObservationPOMDP, p::Policy, up::Updater,
     # df[:bp] = [bp.b for bp in df[:bp]]
     
     df[!,:hyp_num] = map(s -> s.hypothesis_num, df[:s])
-    df[!,:step_num] = map(s -> s.step_num, df[:s])
+    df[!,:step_num] = map(s -> step_num(s), df[:s])
     df[!,:a] = convert.(Int8, df[!,:a])
     df[!,:o] = convert.(Int8, df[!,:o])
     df[!,:t] = convert.(Int8, df[!,:t])
