@@ -6,10 +6,10 @@ struct UrnState{T <: Integer,H,S}
 	state::T
 end
 
-all_urn_states(hyps, steps) = UrnState{Int8,hyps,steps}.(-1:steps * hyps)
+all_urn_states(hyps, steps) = UrnState{Int8,hyps,steps}.(-1:(steps * hyps - 1))
 
 # Static properties
-n_states(::UrnState{<:Integer,H,S}) where {H,S} = H * S + 2
+n_states(::UrnState{<:Integer,H,S}) where {H,S} = H * S + 1
 num_steps(::UrnState{<:Integer,H,S}) where {H,S} = S
 n_hyps(::UrnState{<:Integer,H,S}) where {H,S} = H
 
@@ -18,7 +18,7 @@ representation(s::UrnState) = s.state
 index(s::UrnState) = s.state + 2
 end_state(s::UrnState) = s.state == TERMINAL_STATE
 hypothesis_num(s::UrnState{<:Integer,H,S}) where {H,S} = s.state % H
-step_num(s::UrnState{T,H,S}) where {T <: Integer,H,S} = floor(s.state / H)
+step_num(s::UrnState{T,H,S}) where {T <: Integer,H,S} = T(floor(s.state / H))
 
 function next(s::UrnState{T,H,S})::T where {T <: Integer,H,S}
 	if num_steps(s) == step_num(s) + 1 || end_state(s)
@@ -79,7 +79,7 @@ function UrnPOMDP(balls_in_vase::Integer, balls_per_observation::Integer, observ
 	state_vec = all_urn_states(H, S)
 	action_vec = all_urn_actions(H)
 	observation_vec = all_urn_observations(O)
-	return UrnPOMDP{Int8, Int8(balls_in_vase), Int8(observations+1), Int8(balls_per_observation)}(
+	return UrnPOMDP{Int8, H, S, O}(
 		state_vec,
 		action_vec,
 		observation_vec,
@@ -95,7 +95,7 @@ POMDPs.states(pomdp::UrnPOMDP{T, H, S, O}) where {T<:Integer, H,S,O} = pomdp.sta
 POMDPs.stateindex(::UrnPOMDP{T, H, S, O}, s::UrnState{T, H, S}) where {T<:Integer, H,S,O} = index(s)
 POMDPs.initialstate(pomdp::UrnPOMDP{T, H, S, O}) where {T<:Integer, H,S,O} = SparseCat(
 	states(pomdp),
-	[!isterminal(pomdp, s) && step_num(s) == 1 ? 1.0 / H : 0.0 for s in states(pomdp)]
+	[!isterminal(pomdp, s) && step_num(s) == 0 ? 1.0 / H : 0.0 for s in states(pomdp)]
 )
 
 POMDPs.observations(pomdp::UrnPOMDP{T, H, S, O}) where {T<:Integer, H,S,O} = pomdp.observations
