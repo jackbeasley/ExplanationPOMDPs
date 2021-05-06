@@ -98,6 +98,14 @@ POMDPs.initialstate(pomdp::UrnPOMDP{T, H, S, O}) where {T<:Integer, H,S,O} = Spa
 	[!isterminal(pomdp, s) && step_num(s) == 0 ? 1.0 / H : 0.0 for s in states(pomdp)]
 )
 
+function initialstate_prior(pomdp::UrnPOMDP{T, H, S, O}, prior::AbstractVector{F}) where {T<:Integer, H,S,O, F <: Real}
+	return SparseCat(
+	    states(pomdp),
+	    [!isterminal(pomdp, s) && step_num(s) == 0 ? prior[hypothesis_num(s)+1] : 0.0 for s in states(pomdp)]
+        )
+end
+export initialstate_prior
+
 POMDPs.observations(pomdp::UrnPOMDP{T, H, S, O}) where {T<:Integer, H,S,O} = pomdp.observations
 POMDPs.obsindex(::UrnPOMDP{T, H, S, O}, o::UrnObservation{T, O}) where {T<:Integer, H,S,O} = index(o)
 
