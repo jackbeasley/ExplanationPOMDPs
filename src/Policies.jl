@@ -6,11 +6,6 @@ struct BeliefThresholdPolicy{S,A,O} <: Policy
     threshold::Float64
     fallback_action::A
 end
-BeliefThresholdPolicy(p::P, th, fallback) where {P <: Union{POMDP,MDP}} = BeliefThresholdPolicy(
-    p, 
-    th, 
-    fallback, 
-)
 export BeliefThresholdPolicy
 
 function POMDPs.action(p::BeliefThresholdPolicy, b)

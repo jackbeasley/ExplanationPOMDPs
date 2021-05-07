@@ -1,4 +1,5 @@
 include("experiment_base.jl")
+using ExplanationPOMDPs.Urn
 using ExplanationPOMDPs.Beliefs
 using Printf, DataFrames
 import Arrow
@@ -16,7 +17,7 @@ pomdps = [
 policies = [
         (
             threshold, 
-            pomdp -> BeliefThresholdPolicy(pomdp, threshold, -1)
+            pomdp -> BeliefThresholdPolicy(pomdp, threshold, actions(pomdp)[1])
         )
         for threshold in thresholds
 ]
