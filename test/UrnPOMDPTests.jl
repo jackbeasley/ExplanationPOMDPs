@@ -34,6 +34,24 @@ using Test
 	@test end_state(last_state)
 end
 
+@testset "Action" begin
+	using ExplanationPOMDPs.Urn
+	expected_n_hyps = 4
+	actions = all_urn_actions(expected_n_hyps)
+	# Check static properties
+	@test length(actions) == n_actions(actions[1])
+	@test expected_n_hyps == n_hyps(actions[1])
+
+	# Verify integer values
+	@test representation.(actions) == [-1, 0, 1, 2, 3]
+
+	# Verify properties
+	@test hypothesis_num.(actions) == [-1, 0, 1, 2, 3]
+	@test index.(actions) == [1,2,3,4,5]
+
+end
+
+
 @testset "Single Observation Simulation" begin
 	using ExplanationPOMDPs.Urn
 	using POMDPs, POMDPModelTools, BeliefUpdaters, POMDPSimulators, POMDPPolicies

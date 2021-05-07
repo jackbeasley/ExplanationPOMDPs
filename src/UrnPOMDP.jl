@@ -40,8 +40,8 @@ struct UrnAction{T <: Integer,H}
 	action::T
 end
 
-all_urn_actions(hyps) = UrnAction{Int8,hyps}.(-1:hyps)
-n_actions(::UrnAction{<:Integer,H}) where {H} = H + 2
+all_urn_actions(hyps) = UrnAction{Int8,hyps}.(-1:hyps-1)
+n_actions(::UrnAction{<:Integer,H}) where {H} = H + 1
 n_hyps(::UrnAction{<:Integer,H}) where {H} = H
 representation(a::UrnAction) = a.action
 index(a::UrnAction) = a.action + 2
@@ -126,9 +126,9 @@ function POMDPs.reward(pomdp::UrnPOMDP{T, H, S, O},  s::UrnState{T, H, S}, a::Ur
 		return 0
 	end
 
-	if a == -1
+	if representation(a) == -1
 		return pomdp.r_no_choice
-	elseif hypothesis_num(a) == hypothesis_num(a)
+	elseif hypothesis_num(s) == hypothesis_num(a)
 		return pomdp.r_correct
 	else
 		return pomdp.r_incorrect

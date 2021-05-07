@@ -3,11 +3,11 @@ using ExplanationPOMDPs.SingleObservationExplanation
 using ExplanationPOMDPs.Policies
 using POMDPs, BeliefUpdaters, POMDPPolicies, POMDPSimulators
 
-pomdp = SingleObservationPOMDP(4, 10, 0.0, 1.0, -1.0, 1.0)
+pomdp = UrnPOMDP(4, 10)
 
 @testset "Simulation with threshold policy" begin
 
-    p = BeliefThresholdPolicy(pomdp, 0.4, -1, collect(0:length(states(pomdp))))
+    p = BeliefThresholdPolicy(pomdp, 0.0, actions(pomdp)[1])
     up = DiscreteUpdater(pomdp)
     hr = HistoryRecorder(max_steps=10)
     history = simulate(hr, pomdp, p, up, initialstate(pomdp))
@@ -15,9 +15,9 @@ pomdp = SingleObservationPOMDP(4, 10, 0.0, 1.0, -1.0, 1.0)
     # Initial state and state after observation
     @test length(history) == 2
     finalstep = eachstep(history)[end]
-    @test finalstep[:s].hypothesis_num == finalstep[:a]
+    @test hypothesis_num(finalstep[:s]) == hypothesis_num(finalstep[:a])
 
-    p = BeliefThresholdPolicy(pomdp, 1.0, -1, collect(0:length(states(pomdp))))
+    p = BeliefThresholdPolicy(pomdp, 1.0, actions(pomdp)[1])
     up = DiscreteUpdater(pomdp)
     hr = HistoryRecorder(max_steps=10)
     history = simulate(hr, pomdp, p, up, initialstate(pomdp))
@@ -25,6 +25,6 @@ pomdp = SingleObservationPOMDP(4, 10, 0.0, 1.0, -1.0, 1.0)
     # Initial state and state after observation
     @test length(history) == 2
     finalstep = eachstep(history)[2]
-    @test -1 == finalstep[:a]
+    @test representation(actions(pomdp)[1]) == representation(finalstep[:a])
 end
 
