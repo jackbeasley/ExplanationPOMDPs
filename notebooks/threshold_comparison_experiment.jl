@@ -1,7 +1,7 @@
 include("experiment_base.jl")
 using ExplanationPOMDPs.Beliefs
 using Printf
-using QMDP
+using SARSOP
 import DataFrames
 import Arrow
 import Dates
@@ -17,25 +17,21 @@ pomdps = [
     standard_reward_pomdp(10, balls_per_observation)
     for balls_per_observation in balls_per_observation_range
 ]
-##
-solver = QMDPSolver(max_iterations=20,
-                    belres=1e-3,
-                    verbose=true) 
+solver = SARSOPSolver(precision=1.0e-7) 
+
 policies = vcat([
         (
             (@sprintf "Threshold %s" threshold), 
             pomdp -> BeliefThresholdPolicy(pomdp, threshold, -1)
         )
         for threshold in thresholds
-], [("QMDP Optimal", pomdp -> solve(solver, pomdp))])
-##
+], [("Optimal", pomdp -> solve(solver, pomdp))])
 updaters = [
     ("Schupbach", pomdp -> IBEUpdater(pomdp, SchupbachBonus(), 1.0)),
     ("Good", pomdp -> IBEUpdater(pomdp, GoodBonus(), 1.0)),
     ("Popper", pomdp -> IBEUpdater(pomdp, PopperBonus(), 1.0)),
     ("Bayes", pomdp -> DiscreteUpdater(pomdp)),
 ]
-##
 
 params = vec([
     (pomdp, policy(pomdp), updater(pomdp), 
@@ -45,5 +41,4 @@ params = vec([
 ##
 res = par_run_experiments(params, 10000, true)
 ##
-name = @sprintf "threshold_comparison_%s" Dates.format(Dates.now(), "dd-mm-yyyy_HH-MM-SS")
 Arrow.write(joinpath("results", "threshold_comparison_new.arrow"), res)

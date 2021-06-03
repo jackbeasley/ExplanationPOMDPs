@@ -12,7 +12,7 @@ standard_reward_pomdp(ballsInVase::Int, ballsDrawn::Int) = SingleObservationPOMD
     0.0,   # No reward or penalty for omitting an answer
     1.0,   # 1 point reward for a correct guess
     -1.0,  # 1 point penalty for an incorrect guess
-    1.0    # No discount
+    0.9999    # No discount
 )
 
 function run_experiment(problem::SingleObservationPOMDP, p::Policy, up::Updater, filter_init=true)::DataFrame
@@ -63,11 +63,11 @@ end
 
 const ExperimentParams = Tuple{SingleObservationPOMDP,BeliefThresholdPolicy{SingleObservationPOMDP},Updater,Dict{Symbol,Any}}
 
-function run_experiments(params::AbstractVector{ExperimentParams}, n_per_param::Int, filter_init=true)::DataFrame
+function run_experiments(params, n_per_param::Int, filter_init=true)::DataFrame
     return vcat([run_experiments(pomdp, p, up, tags, n_per_param, filter_init) for (pomdp, p, up, tags) in params]...)
 end
 
-function par_run_experiments(params::AbstractVector{ExperimentParams}, n_per_param::Int, filter_init=true)::DataFrame
+function par_run_experiments(params, n_per_param::Int, filter_init=true)::DataFrame
     dfs = Vector{DataFrame}(undef, length(params))
     prog = Progress(length(params))
     Threads.@threads for i in 1:length(params)

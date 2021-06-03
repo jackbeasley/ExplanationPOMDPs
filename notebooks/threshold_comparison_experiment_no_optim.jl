@@ -6,7 +6,7 @@ import Arrow
 
 # The goal of this notebook is to compare different selection thresholds at
 # different difficulty levels
-thresholds = collect(0.0:0.01:0.95)
+thresholds = collect(0.0:0.01:0.99)
 
 balls_per_observation_range = [5, 10, 15, 20, 25, 30]
 pomdps = [ 

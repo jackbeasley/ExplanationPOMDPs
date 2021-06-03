@@ -19,6 +19,7 @@ p = filter(row -> row.balls_per_observation < 21, mean_rewards) |> @vlplot(
     width = 220,
     columns = 2,
 ) # TODO: need to integrate policy / threshold
+p |> save("policy_vs_rule.pdf")
 p |> save("policy_vs_rule.svg")
 p
 ##

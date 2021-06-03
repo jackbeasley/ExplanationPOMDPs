@@ -41,14 +41,14 @@ POMDPs.initialstate(pomdp::SingleObservationPOMDP) = SparseCat(
 POMDPs.observations(pomdp::SingleObservationPOMDP) = collect(0:pomdp.balls_per_observation)
 POMDPs.obsindex(::SingleObservationPOMDP, o::Observation) = o + 1
 # Next state will be the one with 
-function POMDPs.observation(pomdp::SingleObservationPOMDP, s::OneShotState, a::Action, sn::OneShotState) 
-    if sn < 0
+function POMDPs.observation(pomdp::SingleObservationPOMDP, s::OneShotState) 
+    if s < 0
         # Transition probabilities make this impossible, so this uniform choice is entirely arbitrary
         return DiscreteUniform(0, pomdp.balls_per_observation)
     end
     return Binomial(
         pomdp.balls_per_observation, 
-        sn / pomdp.balls_per_vase
+        s / pomdp.balls_per_vase
     )
 end
 
